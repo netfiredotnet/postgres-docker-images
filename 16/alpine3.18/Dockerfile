@@ -30,9 +30,10 @@ ENV PG_SHA256 ce3c4d85d19b0121fe0d3f8ef1fa601f71989e86f8a66f7dc3ad546dd5564fec
 ENV DOCKER_PG_LLVM_DEPS \
 		llvm15-dev \
 		clang15
-
+COPY ./pg_config_manual.patch /opt/patches/pg_config_manual.patch
 RUN set -eux; \
 	\
+	apk add --no-cache patch; \
 	wget -O postgresql.tar.bz2 "https://ftp.postgresql.org/pub/source/v$PG_VERSION/postgresql-$PG_VERSION.tar.bz2"; \
 	echo "$PG_SHA256 *postgresql.tar.bz2" | sha256sum -c -; \
 	mkdir -p /usr/src/postgresql; \
@@ -42,6 +43,7 @@ RUN set -eux; \
 		--directory /usr/src/postgresql \
 		--strip-components 1 \
 	; \
+	patch -u /usr/src/postgresql/src/include/pg_config_manual.h -i /opt/patches/pg_config_manual.patch; \
 	rm postgresql.tar.bz2; \
 	\
 	apk add --no-cache --virtual .build-deps \
