@@ -44,6 +44,7 @@ RUN set -eux; \
 	apk add --no-cache --virtual .build-deps \
 		$DOCKER_PG_LLVM_DEPS \
 		bison \
+		dos2unix \
 		coreutils \
 		dpkg-dev dpkg \
 		flex \
@@ -197,6 +198,7 @@ RUN mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA" && chmod 1777 "$P
 VOLUME /var/lib/postgresql/data
 
 COPY docker-entrypoint.sh /usr/local/bin/
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # We set the default STOPSIGNAL to SIGINT, which corresponds to what PostgreSQL
