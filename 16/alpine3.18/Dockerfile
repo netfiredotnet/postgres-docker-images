@@ -3,8 +3,9 @@
 #
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
-
-
+FROM alpine:3.18 AS builder
+COPY docker-entrypoint.sh /opt/docker-entrypoint.sh
+RUN apk add --no-cache dos2unix && dos2unix /opt/docker-entrypoint.sh
 FROM alpine:3.18
 
 # 70 is the standard uid/gid for "postgres" in Alpine
@@ -49,7 +50,6 @@ RUN set -eux; \
 	apk add --no-cache --virtual .build-deps \
 		$DOCKER_PG_LLVM_DEPS \
 		bison \
-		dos2unix \
 		coreutils \
 		dpkg-dev dpkg \
 		flex \
@@ -176,9 +176,7 @@ ENV PGDATA /var/lib/postgresql/data
 # this 1777 will be replaced by 0700 at runtime (allows semi-arbitrary "--user" values)
 RUN mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA" && chmod 1777 "$PGDATA"
 VOLUME /var/lib/postgresql/data
-
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN dos2unix /usr/local/bin/docker-entrypoint.sh
+COPY --from=builder /opt/docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # We set the default STOPSIGNAL to SIGINT, which corresponds to what PostgreSQL
